@@ -1,0 +1,25 @@
+---
+# tasks/main.yml para linux-observability-agent
+
+- name: "Asegurar que el directorio base para scripts exista"
+  ansible.builtin.file:
+    path: /opt/homelab/scripts
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: "Desplegar el agente de observabilidad (Script de Healthcheck)"
+  ansible.builtin.copy:
+    src: system_healthcheck.sh
+    dest: /opt/homelab/scripts/system_healthcheck.sh
+    mode: '0755'  # Crucial para que el script sea ejecutable
+    owner: root
+    group: root
+
+- name: "Programar ejecución periódica (Cron) del agente"
+  ansible.builtin.cron:
+    name: "Recolectar telemetria del nodo en formato JSON"
+    minute: "*/5" # Se ejecuta cada 5 minutos
+    job: "/opt/homelab/scripts/system_healthcheck.sh > /var/log/homelab_health.json 2>&1"
+    user: root
